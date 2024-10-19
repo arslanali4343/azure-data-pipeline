@@ -1,4 +1,4 @@
-# Azure Data Pipeline Project
+# Real-Time Data Streaming Implementation on Azure
 
 ## Table of Contents
 
