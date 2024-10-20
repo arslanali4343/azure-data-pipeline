@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2023-10-19T12:00:00.000Z" agent="Mozilla/5.0" etag="abcd1234">
+  <diagram id="AzureDataPipelineProject" name="Azure Data Pipeline Project Diagram">
+    <mxGraphModel dx="1000" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1500" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <!-- Data Sources -->
+        <mxCell id="2" value="Live Data Source" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="50" y="100" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="3" value="CSV Data Source" style="shape=ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="50" y="200" width="120" height="60" as="geometry"/>
+        </mxCell>
+        <!-- Data Producer -->
+        <mxCell id="4" value="Data Producer (Python Script)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#007bff;" vertex="1" parent="1">
+          <mxGeometry x="200" y="150" width="180" height="80" as="geometry"/>
+        </mxCell>
+        <!-- Schema Creator -->
+        <mxCell id="5" value="Schema Creator (Python Script)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6ccff;strokeColor=#9b59b6;" vertex="1" parent="1">
+          <mxGeometry x="200" y="300" width="180" height="60" as="geometry"/>
+        </mxCell>
+        <!-- SSMS -->
+        <mxCell id="6" value="SQL Server Management Studio (SSMS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffcc99;strokeColor=#e67e22;" vertex="1" parent="1">
+          <mxGeometry x="400" y="300" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <!-- Azure Event Hub -->
+        <mxCell id="7" value="Azure Event Hub" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#ffebcc;strokeColor=#d35400;" vertex="1" parent="1">
+          <mxGeometry x="400" y="150" width="150" height="80" as="geometry"/>
+        </mxCell>
+        <!-- Azure SQL Database -->
+        <mxCell id="8" value="Azure SQL Database" style="shape=cylinder;whiteSpace=wrap;html=1;fillColor=#d6eaf8;strokeColor=#5dade2;" vertex="1" parent="1">
+          <mxGeometry x="600" y="150" width="150" height="80" as="geometry"/>
+        </mxCell>
+        <!-- Data Consumer -->
+        <mxCell id="9" value="Data Consumer (Python Script on Ubuntu VM)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5f5e3;strokeColor=#28b463;" vertex="1" parent="1">
+          <mxGeometry x="600" y="50" width="220" height="80" as="geometry"/>
+        </mxCell>
+        <!-- PuTTY -->
+        <mxCell id="10" value="PuTTY (SSH to Ubuntu VM)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f9e79f;strokeColor=#f1c40f;" vertex="1" parent="1">
+          <mxGeometry x="850" y="50" width="180" height="60" as="geometry"/>
+        </mxCell>
+        <!-- Verification in SSMS -->
+        <mxCell id="11" value="Verify Data in SSMS/Azure SQL DB" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fadbd8;strokeColor=#c0392b;" vertex="1" parent="1">
+          <mxGeometry x="800" y="200" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <!-- Arrows -->
+        <!-- From Live Data Source to Data Producer -->
+        <mxCell id="12" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="2" target="4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- From CSV Data Source to Data Producer -->
+        <mxCell id="13" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="3" target="4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- From Data Producer to Event Hub -->
+        <mxCell id="14" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="4" target="7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- From Schema Creator to SSMS -->
+        <mxCell id="15" style="endArrow=block;html=1;dashed=1;strokeWidth=2;" edge="1" parent="1" source="5" target="6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- From SSMS to Azure SQL Database -->
+        <mxCell id="16" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="6" target="8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- From Event Hub to Azure SQL Database -->
+        <mxCell id="17" style="endArrow=open;html=1;dashed=1;strokeWidth=2;" edge="1" parent="1" source="7" target="8">
+          <mxGeometry relative="1" as="geometry"/>
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- From Event Hub to Data Consumer -->
+        <mxCell id="18" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="7" target="9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- From Data Consumer to Azure SQL Database -->
+        <mxCell id="19" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="9" target="8">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- From PuTTY to Data Consumer -->
+        <mxCell id="20" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="10" target="9">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- From Azure SQL Database to Verification in SSMS -->
+        <mxCell id="21" style="endArrow=block;html=1;strokeWidth=2;" edge="1" parent="1" source="8" target="11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <!-- From SSMS to Verification in SSMS -->
+        <mxCell id="22" style="endArrow=open;html=1;dashed=1;strokeWidth=2;" edge="1" parent="1" source="6" target="11">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

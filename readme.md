@@ -1,4 +1,4 @@
-# Real-Time Data Streaming Implementation on Azure
+# Azure Data Pipeline Project
 
 ## Table of Contents
 
@@ -56,9 +56,15 @@ The data pipeline consists of the following components:
 
 5. **Schema Creator**: A Python script to generate SQL table schemas based on the data structure.
 
+
+## Overall Architecture Diagram
+
+![Overall Architecture Diagram](images/CompleteArchitectureDiagram.png)
+
+
 ## Architecture Diagram
 
-![Architecture Diagram](images/architecture_diagram.png)
+![Current Architecture Diagram](images/AzureDataPipeline.png)
 
 *(Include an image named `architecture_diagram.png` in the `images` directory of your repository.)*
 
@@ -233,306 +239,12 @@ You can verify that data has been inserted into your Azure SQL Database.
      SELECT * FROM GeneratedLiveTable;
      ```
 
----
-
-## Code Files
-
-### data_producer.py
-
-```python
-import csv
-import json
-import random
-from datetime import datetime
-from azure.eventhub import EventHubProducerClient, EventData
-import time
-
-# Replace with your connection string and event hub name
-CONNECTION_STR = "<YOUR_EVENT_HUB_CONNECTION_STRING>"
-EVENTHUB_NAME = "<YOUR_EVENT_HUB_NAME>"
-
-producer = EventHubProducerClient.from_connection_string(
-    conn_str=CONNECTION_STR,
-    eventhub_name=EVENTHUB_NAME
-)
-
-# File path for CSV
-csv_file = 'data.csv'  # Replace with your actual CSV file path
-
-# Function to send data to Event Hub
-def send_to_event_hub(data, data_type):
-    event_data = EventData(data)
-    with producer:
-        producer.send_batch([event_data])
-    print(f"Sent {data_type}: {data}")
-
-# Function to generate live data
-def generate_data():
-    data = {
-        "id": random.randint(1, 10),
-        "value": random.uniform(10.0, 100.0),
-        "timestamp": datetime.now().isoformat()
-    }
-    return data
-
-# Function to send live data
-def send_live_data(max_messages=10):
-    count = 0
-    while count < max_messages:
-        live_data = generate_data()
-        live_data_str = json.dumps(live_data)  # Convert live data to JSON string
-        send_to_event_hub(live_data_str, "Live Data")
-        count += 1
-        time.sleep(5)  # Send live data every 5 seconds
-
-# Function to send CSV data
-def send_csv_data():
-    with open(csv_file, mode='r') as file:
-        reader = csv.reader(file)
-        next(reader)  # Skip the header row
-
-        for row in reader:
-            csv_data = ','.join(row)  # Convert list to a comma-separated string
-            send_to_event_hub(csv_data, "CSV Data")
-
-# Function to send both CSV and live data alternately
-def send_both_data():
-    with open(csv_file, mode='r') as file:
-        reader = csv.reader(file)
-        next(reader)  # Skip the header row
-
-        while True:
-            try:
-                # Send CSV Data
-                row = next(reader)
-                csv_data = ','.join(row)
-                send_to_event_hub(csv_data, "CSV Data")
-            except StopIteration:
-                print("All CSV data sent.")
-                break
-
-            # Send Live Data
-            live_data = generate_data()
-            live_data_str = json.dumps(live_data)
-            send_to_event_hub(live_data_str, "Live Data")
-            time.sleep(5)  # Send every 5 seconds
-
-# Main program: ask the user for the data source option
-def main():
-    print("Choose the data source to send to Event Hubs:")
-    print("1: CSV Data")
-    print("2: Live Generated Data")
-    print("3: Both CSV and Live Data Alternately")
-
-    choice = input("Enter your choice (1, 2, or 3): ")
-
-    if choice == '1':
-        print("Sending CSV data...")
-        send_csv_data()
-    elif choice == '2':
-        print("Sending live generated data...")
-        send_live_data()
-    elif choice == '3':
-        print("Sending both CSV and live generated data alternately...")
-        send_both_data()
-    else:
-        print("Invalid choice. Please run the program again and select 1, 2, or 3.")
-
-if __name__ == "__main__":
-    main()
-```
-
-### data_consumer.py
-
-```python
-import json
-import pyodbc
-from azure.eventhub import EventHubConsumerClient
-
-# Replace with your connection string and event hub name
-CONNECTION_STR = "<YOUR_EVENT_HUB_CONNECTION_STRING>"
-EVENTHUB_NAME = "<YOUR_EVENT_HUB_NAME>"
-CONSUMER_GROUP = "$Default"
-
-# SQL Database connection details
-SERVER = "<YOUR_SERVER_NAME>.database.windows.net"
-DATABASE = "<YOUR_DATABASE_NAME>"
-USER = "<YOUR_USERNAME>"
-PASSWORD = "<YOUR_PASSWORD>"
-
-# Function to handle CSV data insertion into the database
-def handle_csv_data(data):
-    print(f"Processing CSV data: {data}")
-    try:
-        conn = pyodbc.connect(
-            f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};UID={USER};PWD={PASSWORD}'
-        )
-        cursor = conn.cursor()
-
-        # Assuming the CSV data is comma-separated
-        columns = data.split(',')
-        cursor.execute(
-            "INSERT INTO GeneratedCSVTable (FULL_DATE, AMOUNT, LOANS) VALUES (?, ?, ?)",
-            columns[0], columns[1], columns[2]
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
-        print("CSV data successfully inserted into the database.")
-    except Exception as e:
-        print(f"Error inserting CSV data into the database: {e}")
-
-# Function to handle live data insertion into the database
-def handle_live_data(data):
-    print(f"Processing live data: {data}")
-    try:
-        conn = pyodbc.connect(
-            f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={SERVER};DATABASE={DATABASE};UID={USER};PWD={PASSWORD}'
-        )
-        cursor = conn.cursor()
-
-        cursor.execute(
-            "INSERT INTO GeneratedLiveTable (id, value, timestamp) VALUES (?, ?, ?)",
-            data["id"],
-            data["value"],
-            data["timestamp"]
-        )
-        conn.commit()
-        cursor.close()
-        conn.close()
-        print("Live data successfully inserted into the database.")
-    except Exception as e:
-        print(f"Error inserting live data into the database: {e}")
-
-# Main function to handle incoming events
-def on_event(partition_context, event, data_type):
-    data = event.body_as_str()
-
-    if data_type == "CSV":
-        handle_csv_data(data)
-    elif data_type == "Live":
-        try:
-            json_data = json.loads(data)
-            handle_live_data(json_data)
-        except json.JSONDecodeError:
-            print("Received data is not valid JSON for live data.")
-
-    partition_context.update_checkpoint(event)
-
-# Event Hub client setup
-try:
-    client = EventHubConsumerClient.from_connection_string(
-        CONNECTION_STR,
-        CONSUMER_GROUP,
-        eventhub_name=EVENTHUB_NAME
-    )
-    print("Event Hub client created successfully.")
-except Exception as e:
-    print(f"Error creating Event Hub client: {e}")
-
-# Main function to start receiving events based on user selection
-def main():
-    print("Choose the data type to consume from Event Hubs:")
-    print("1: CSV Data")
-    print("2: Live Generated Data")
-    print("3: Both CSV and Live Data")
-
-    choice = input("Enter your choice (1, 2, or 3): ")
-
-    if choice == '1':
-        data_type = "CSV"
-    elif choice == '2':
-        data_type = "Live"
-    elif choice == '3':
-        data_type = "Both"
-    else:
-        print("Invalid choice. Please restart and select 1, 2, or 3.")
-        return
-
-    # Start receiving events from Event Hubs
-    try:
-        if client:
-            with client:
-                print(f"Starting to receive {data_type} events from Event Hub...")
-                client.receive(
-                    on_event=lambda partition_context, event: on_event(partition_context, event, data_type),
-                    starting_position="-1"  # "-1" starts from the beginning of the stream
-                )
-    except KeyboardInterrupt:
-        print("Receiving interrupted by user.")
-    except Exception as e:
-        print(f"Error during event receiving: {e}")
-
-if __name__ == "__main__":
-    main()
-```
-
-### schema_creator.py
-
-```python
-import csv
-import json
-
-# File path for CSV
-csv_file = 'data.csv'  # Replace with your actual CSV file path
-
-# Function to generate SQL schema for CSV data
-def generate_sql_schema_csv(csv_file, table_name="GeneratedCSVTable"):
-    with open(csv_file, mode='r') as file:
-        reader = csv.reader(file)
-        headers = next(reader)  # Read the header row (column names)
-
-    # Create SQL CREATE TABLE statement dynamically
-    sql_columns = []
-    for header in headers:
-        sql_columns.append(f'"{header}" VARCHAR(255)')  # Assuming all columns are VARCHAR for simplicity
-
-    sql_create_table = f'CREATE TABLE {table_name} (\n' + ',\n'.join(sql_columns) + '\n);'
-    
-    return sql_create_table
-
-# Function to generate SQL schema for live generated data
-def generate_sql_schema_live(data_example, table_name="GeneratedLiveTable"):
-    # Extract column names (keys) from live data dictionary
-    sql_columns = []
-    for key in data_example.keys():
-        sql_columns.append(f'"{key}" VARCHAR(255)')  # Assuming all columns are VARCHAR for simplicity
-
-    sql_create_table = f'CREATE TABLE {table_name} (\n' + ',\n'.join(sql_columns) + '\n);'
-    
-    return sql_create_table
-
-# Example of live generated data
-def generate_data():
-    data = {
-        "id": 1,
-        "value": 99.99,
-        "timestamp": "2024-10-19T12:34:56.789123"
-    }
-    return data
-
-# Main program to generate schemas for both CSV and live data
-def main():
-    # Generate SQL schema for CSV data
-    csv_sql_schema = generate_sql_schema_csv(csv_file, "GeneratedCSVTable")
-    print("SQL Schema for CSV Data:")
-    print(csv_sql_schema)
-
-    # Generate SQL schema for live generated data
-    live_data_example = generate_data()
-    live_sql_schema = generate_sql_schema_live(live_data_example, "GeneratedLiveTable")
-    print("\nSQL Schema for Live Data:")
-    print(live_sql_schema)
-
-if __name__ == "__main__":
-    main()
-```
-
----
-
 ## Conclusion
 
 By following this guide, you have set up a complete data pipeline using Azure services. You can now generate data, send it through Event Hubs, store it in an Azure SQL Database, and consume it using Python scripts.
+
+
+
 
 ## Acknowledgments
 
