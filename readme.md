@@ -21,10 +21,6 @@
   - [1. Running the Data Producer](#1-running-the-data-producer)
   - [2. Running the Data Consumer](#2-running-the-data-consumer)
   - [3. Verifying Data in SQL Database](#3-verifying-data-in-sql-database)
-- [Code Files](#code-files)
-  - [data_producer.py](#data_producerpy)
-  - [data_consumer.py](#data_consumerpy)
-  - [schema_creator.py](#schema_creatorpy)
 - [Conclusion](#conclusion)
 - [Acknowledgments](#acknowledgments)
 
@@ -61,12 +57,9 @@ The data pipeline consists of the following components:
 
 ![Overall Architecture Diagram](images/CompleteArchitectureDiagram.png)
 
-
 ## Architecture Diagram
 
 ![Current Architecture Diagram](images/AzureDataPipeline.png)
-
-*(Include an image named `architecture_diagram.png` in the `images` directory of your repository.)*
 
 ## Setup Instructions
 
