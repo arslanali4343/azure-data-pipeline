@@ -250,7 +250,3 @@ By following this guide, you have set up a complete data pipeline using Azure se
 **Disclaimer**: Ensure that all sensitive information such as passwords and connection strings are kept secure. Do not share them publicly or commit them to public repositories.
 
 ---
-
-I hope this detailed `README.md` file meets your requirements. Remember to replace all placeholders with your actual configuration details and to include the necessary images in the `images` directory.
-
-If you need further assistance or have additional requests, feel free to ask!
