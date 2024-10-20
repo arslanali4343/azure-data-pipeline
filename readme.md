@@ -1,4 +1,4 @@
-# Azure Data Pipeline Project
+# Azure Kafka Pipeline Project
 
 ## Table of Contents
 
